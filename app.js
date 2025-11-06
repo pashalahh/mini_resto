@@ -139,3 +139,82 @@ function ubahJumlah(id, delta) {
         tampilkanPesanan(); 
     }
 }
+
+async function getMenu() {
+    menuList.innerHTML = "Please wait...";
+
+    try {
+        // Ambil data dari endpoint API
+        const resp = await
+        fetch("https://api.phb-umkm.my.id/api/products");
+
+        // Ubah hasilnya menjadi JSON
+        const result = await resp.json();
+
+        // Lihat hasilnya di console
+        console.log(result.data);
+
+        // Simpan data ke array daftarMenu
+        result.data.forEach((item) => {
+        const fotoDefault =
+        "https://via.placeholder.com/400x300?text=No+Image";
+        
+        const makanan = {
+        id: item.id,
+        nama: item.name,
+        harga: item.price,
+        deskripsi: item.description,
+        foto: item.image_url && item.image_url.trim() !== ""
+            ? item.image_url
+            : fotoDefault, // jika tidak ada gambar, tampilkan placeholder
+        };
+
+        daftarMenu.push(makanan);
+    });
+
+        // Setelah data siap, tampilkan di halaman
+        renderMenu();
+    }catch (error) {
+    console.error("Gagal mengambil data:", error);
+    menuList.innerHTML = `<p class="text-red-500">Gagal memuat data
+    menu.</p>`;
+    }
+}
+
+// Fungsi untuk menampilkan data ke halaman
+function renderMenu() {
+    menuList.innerHTML = ""; // kosongkan dulu tampilan
+    
+    if (daftarMenu.length === 0) {
+        menuList.innerHTML = `<p class="text-gray-500">Belum ada menu.</p>`;
+        return;
+    }
+
+    daftarMenu.forEach((makanan) => {
+        const card = document.createElement("div");
+        card.className = "bg-white rounded-lg shadow overflow-hidden flex flex-col";
+    card.innerHTML = `
+        <img src="${makanan.foto}" alt="${makanan.nama}" class="h-40 w-full object-cover">
+        <div class="p-3 flex-1">
+            <h3 class="font-semibold text-lg">${makanan.nama}</h3>
+            <p class="text-sm text-gray-500">${makanan.deskripsi ||
+            "-"}</p>
+            <p class="font-bold text-blue-600 mt-2">Rp ${makanan.harga.toLocaleString()}</p>
+        </div>
+        <button class="bg-green-500 text-white py-2 hover:bg-green-600 transition">Tambah ke Pesanan</button>
+        `;
+
+    const btn = card.querySelector("button");
+    btn.addEventListener("click", () => tambahPesanan(makanan));
+    
+    menuList.appendChild(card);
+    });
+}
+
+// Fungsi ketika tombol ditekan
+function tambahPesanan(makanan) {
+    alert(`Menambahkan ${makanan.nama} ke pesanan`);
+}
+
+// Jalankan saat halaman dimuat
+getMenu();
